@@ -74,6 +74,12 @@ public class ValidacaoExceptionHandler extends ResponseEntityExceptionHandler {
         return handlerException(exception, HttpStatus.UNAUTHORIZED, request, "validacao.session-invalid", args);
     }
 
+    @ExceptionHandler({ InvalidPasswordPatternException.class })
+    public ResponseEntity<Object> handleInvalidPasswordPatternException(InvalidPasswordPatternException exception, WebRequest request) {
+        Object[] args = { exception.getMessage() };
+        return handlerException(exception, HttpStatus.BAD_REQUEST, request, "validacao.invalid-password-pattern", args);
+    }
+
     protected ResponseEntity<Object> handlerException(Exception exception, HttpStatus status, WebRequest request, String key, Object[] args) {
         ApiError response = new ApiError(messageService.getMessage(key, args));
         return handleExceptionInternal(exception, response, new HttpHeaders(), status, request);
