@@ -68,6 +68,12 @@ public class ValidacaoExceptionHandler extends ResponseEntityExceptionHandler {
         return handlerException(exception, HttpStatus.UNAUTHORIZED, request, "usuario.nao-encontrado", args);
     }
 
+    @ExceptionHandler({ SessionInvalidException.class })
+    public ResponseEntity<Object> handleSessionInvalidException(SessionInvalidException exception, WebRequest request) {
+        Object[] args = { exception.getMessage() };
+        return handlerException(exception, HttpStatus.UNAUTHORIZED, request, "validacao.session-invalid", args);
+    }
+
     protected ResponseEntity<Object> handlerException(Exception exception, HttpStatus status, WebRequest request, String key, Object[] args) {
         ApiError response = new ApiError(messageService.getMessage(key, args));
         return handleExceptionInternal(exception, response, new HttpHeaders(), status, request);

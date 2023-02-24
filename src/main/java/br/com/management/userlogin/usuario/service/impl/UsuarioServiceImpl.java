@@ -1,6 +1,7 @@
 package br.com.management.userlogin.usuario.service.impl;
 
 import br.com.management.userlogin.infrastructure.exception.RecursoNaoEncontradoException;
+import br.com.management.userlogin.infrastructure.exception.SessionInvalidException;
 import br.com.management.userlogin.infrastructure.exception.TokenHeaderErrorException;
 import br.com.management.userlogin.infrastructure.utils.JwtTokenUtil;
 import br.com.management.userlogin.usuario.adapter.UsuarioValidateAdapter;
@@ -19,6 +20,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -50,6 +52,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Override
     public UsuarioResponseTO findUsuario(String id, HttpServletRequest servletRequest) {
         var usuario = this.authorizeRequest(id, servletRequest);
+        this.validaSession(usuario);
         return usuarioConvert.convertToDTO(usuario);
     }
 
@@ -66,5 +69,18 @@ public class UsuarioServiceImpl implements UsuarioService {
             throw new TokenHeaderErrorException();
         }
         return usuario;
+    }
+
+    private void validaSession(Usuario usuario) {
+        try {
+            var lastLogin = usuario.getLastLogin();
+            var duration = Duration.between(lastLogin, LocalDateTime.now());
+            if (duration.toMinutes() > 30) {
+                throw new SessionInvalidException();
+            }
+        } catch (NullPointerException exception) {
+            log.info(exception.getMessage() + " :Sessão Inválida." );
+            throw new SessionInvalidException();
+        }
     }
 }
